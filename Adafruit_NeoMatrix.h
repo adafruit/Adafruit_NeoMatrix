@@ -87,6 +87,8 @@ class Adafruit_NeoMatrix : public Adafruit_GFX, public Adafruit_NeoPixel {
 
   static uint16_t
     Color(uint8_t r, uint8_t g, uint8_t b);
+  static uint16_t
+    ColorHSV(uint16_t hue, uint8_t sat=255, uint8_t val=255);
 
  private:
 
