@@ -198,6 +198,109 @@ void Adafruit_NeoMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
     passThruFlag ? passThruColor : expandColor(color));
 }
 
+uint16_t Adafruit_NeoMatrix::getPixel(int16_t x, int16_t y) {
+
+  if((x < 0) || (y < 0) || (x >= _width) || (y >= _height)) return 0;
+
+  int16_t t;
+  switch(rotation) {
+   case 1:
+    t = x;
+    x = WIDTH  - 1 - y;
+    y = t;
+    break;
+   case 2:
+    x = WIDTH  - 1 - x;
+    y = HEIGHT - 1 - y;
+    break;
+   case 3:
+    t = x;
+    x = y;
+    y = HEIGHT - 1 - t;
+    break;
+  }
+
+  int tileOffset = 0, pixelOffset;
+
+  if(remapFn) { // Custom X/Y remapping function
+    pixelOffset = (*remapFn)(x, y);
+  } else {      // Standard single matrix or tiled matrices
+
+    uint8_t  corner = type & NEO_MATRIX_CORNER;
+    uint16_t minor, major, majorScale;
+
+    if(tilesX) { // Tiled display, multiple matrices
+      uint16_t tile;
+
+      minor = x / matrixWidth;            // Tile # X/Y; presume row major to
+      major = y / matrixHeight,           // start (will swap later if needed)
+      x     = x - (minor * matrixWidth);  // Pixel X/Y within tile
+      y     = y - (major * matrixHeight); // (-* is less math than modulo)
+
+      // Determine corner of entry, flip axes if needed
+      if(type & NEO_TILE_RIGHT)  minor = tilesX - 1 - minor;
+      if(type & NEO_TILE_BOTTOM) major = tilesY - 1 - major;
+
+      // Determine actual major axis of tiling
+      if((type & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
+        majorScale = tilesX;
+      } else {
+        _swap_uint16_t(major, minor);
+        majorScale = tilesY;
+      }
+
+      // Determine tile number
+      if((type & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
+        // All tiles in same order
+        tile = major * majorScale + minor;
+      } else {
+        // Zigzag; alternate rows change direction.  On these rows,
+        // this also flips the starting corner of the matrix for the
+        // pixel math later.
+        if(major & 1) {
+          corner ^= NEO_MATRIX_CORNER;
+          tile = (major + 1) * majorScale - 1 - minor;
+        } else {
+          tile =  major      * majorScale     + minor;
+        }
+      }
+
+      // Index of first pixel in tile
+      tileOffset = tile * matrixWidth * matrixHeight;
+
+    } // else no tiling (handle as single tile)
+
+    // Find pixel number within tile
+    minor = x; // Presume row major to start (will swap later if needed)
+    major = y;
+
+    // Determine corner of entry, flip axes if needed
+    if(corner & NEO_MATRIX_RIGHT)  minor = matrixWidth  - 1 - minor;
+    if(corner & NEO_MATRIX_BOTTOM) major = matrixHeight - 1 - major;
+
+    // Determine actual major axis of matrix
+    if((type & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
+      majorScale = matrixWidth;
+    } else {
+      _swap_uint16_t(major, minor);
+      majorScale = matrixHeight;
+    }
+
+    // Determine pixel number within tile/matrix
+    if((type & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
+      // All lines in same order
+      pixelOffset = major * majorScale + minor;
+    } else {
+      // Zigzag; alternate rows change direction.
+      if(major & 1) pixelOffset = (major + 1) * majorScale - 1 - minor;
+      else          pixelOffset =  major      * majorScale     + minor;
+    }
+  }
+
+  return getPixelColor(tileOffset + pixelOffset,
+    passThruFlag ? passThruColor : expandColor(color));
+}
+
 void Adafruit_NeoMatrix::fillScreen(uint16_t color) {
   uint16_t i, n;
   uint32_t c;

@@ -85,6 +85,9 @@ class Adafruit_NeoMatrix : public Adafruit_GFX, public Adafruit_NeoPixel {
     setPassThruColor(void),
     setRemapFunction(uint16_t (*fn)(uint16_t, uint16_t));
 
+  uint16_t
+    getPixel(int16_t x, int16_t y);
+
   static uint16_t
     Color(uint8_t r, uint8_t g, uint8_t b);
 
