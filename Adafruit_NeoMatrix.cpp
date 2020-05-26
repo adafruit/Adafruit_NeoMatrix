@@ -1,33 +1,51 @@
-/*-------------------------------------------------------------------------
-  Arduino library to control single and tiled matrices of WS2811- and
-  WS2812-based RGB LED devices such as the Adafruit NeoPixel Shield or
-  displays assembled from NeoPixel strips, making them compatible with
-  the Adafruit_GFX graphics library.  Requires both the Adafruit_NeoPixel
-  and Adafruit_GFX libraries.
-
-  Written by Phil Burgess / Paint Your Dragon for Adafruit Industries.
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing products
-  from Adafruit!
-
-  -------------------------------------------------------------------------
-  This file is part of the Adafruit NeoMatrix library.
-
-  NeoMatrix is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as
-  published by the Free Software Foundation, either version 3 of
-  the License, or (at your option) any later version.
-
-  NeoMatrix is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with NeoMatrix.  If not, see
-  <http://www.gnu.org/licenses/>.
-  -------------------------------------------------------------------------*/
+/*!
+ * @file Adafruit_NeoMatrix.cpp
+ *
+ * @mainpage GFX-compatible layer for NeoPixel matrices.
+ *
+ * @section intro_sec Introduction
+ *
+ * Arduino library to control single and tiled matrices of WS2811- and
+ * WS2812-based RGB LED devices such as the Adafruit NeoPixel Shield or
+ * displays assembled from NeoPixel strips, making them compatible with
+ * the Adafruit_GFX graphics library.
+ *
+ * Adafruit invests time and resources providing this open source code,
+ * please support Adafruit and open-source hardware by purchasing
+ * products from Adafruit!
+ *
+ * @section dependencies Dependencies
+ *
+ * This library depends on <a
+ * href="https://github.com/adafruit/Adafruit_NeoPixel"> Adafruit_NeoPixel</a>
+ * and <a
+ * href="https://github.com/adafruit/Adafruit-GFX-Library"> Adafruit_GFX</a>
+ * being present on your system. Please make sure you have installed the
+ * latest versions before using this library.
+ *
+ * @section author Author
+ *
+ * Written by Phil Burgess / Paint Your Dragon for Adafruit Industries.
+ *
+ * @section license License
+ *
+ * This file is part of the Adafruit NeoMatrix library.
+ *
+ * NeoMatrix is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * NeoMatrix is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with NeoMatrix.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "gamma.h"
 #include <Adafruit_NeoMatrix.h>
@@ -38,7 +56,8 @@
 #include <pgmspace.h>
 #else
 #ifndef pgm_read_byte
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#define pgm_read_byte(addr)                                                    \
+  (*(const unsigned char *)(addr)) ///< PROGMEM concept doesn't apply on ESP8266
 #endif
 #endif
 
@@ -48,7 +67,7 @@
     uint16_t t = a;                                                            \
     a = b;                                                                     \
     b = t;                                                                     \
-  }
+  } ///< Swap contents of two uint16_t variables
 #endif
 
 // Constructor for single matrix:
@@ -75,20 +94,9 @@ static uint32_t expandColor(uint16_t color) {
          pgm_read_byte(&gamma5[color & 0x1F]);
 }
 
-// Downgrade 24-bit color to 16-bit (add reverse gamma lookup here?)
 uint16_t Adafruit_NeoMatrix::Color(uint8_t r, uint8_t g, uint8_t b) {
   return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
 }
-
-// Pass-through is a kludge that lets you override the current drawing
-// color with a 'raw' RGB (or RGBW) value that's issued directly to
-// pixel(s), side-stepping the 16-bit color limitation of Adafruit_GFX.
-// This is not without some limitations of its own -- for example, it
-// won't work in conjunction with the background color feature when
-// drawing text or bitmaps (you'll just get a solid rect of color),
-// only 'transparent' text/bitmaps.  Also, no gamma correction.
-// Remember to UNSET the passthrough color immediately when done with
-// it (call with no value)!
 
 // Pass raw color value to set/enable passthrough
 void Adafruit_NeoMatrix::setPassThruColor(uint32_t c) {
