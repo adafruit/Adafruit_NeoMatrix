@@ -370,6 +370,7 @@ void count_pixels() {
 	    // depending on the matrix size, it's too slow to display each pixel, so
 	    // make the scan init faster. This will however be too fast on a small matrix.
 	    if (!(j%7)) matrix->show();
+	    yield();
 	}
     }
 }
