@@ -117,7 +117,8 @@ public:
                                           NEO_TILE_LEFT + NEO_TILE_ROWS,
                      neoPixelType ledType = NEO_GRB + NEO_KHZ800);
 
-  virtual ~Adafruit_NeoMatrix() {} // Virtual destructor to allow better memory management
+  virtual ~Adafruit_NeoMatrix() {
+  } // Virtual destructor to allow better memory management
 
   /**
    * @brief  Pixel-drawing function for Adafruit_GFX.
